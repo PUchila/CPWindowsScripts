@@ -46,6 +46,28 @@ if %ERRORLEVEL% equ 1 (
     echo:
 )
 
+Rem Password Policies
+choice /c ync /m "Do you wish to enable password policies?"
+if %ERRORLEVEL% equ 3 (
+    echo Canceling...
+    pause
+    goto:eof
+)
+if %ERRORLEVEL% equ 2 echo Skipping pwd policies...
+if %ERRORLEVEL% equ 1 (
+    REM Set password policies
+    net accounts /minpwlen:10 /maxpwage:60 /minpwage:1 /uniquepw:5
+    REM Set Password Complexity Requirements to Enabled
+    REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "PasswordComplexity" /t REG_DWORD /d 1 /f
+    REG ADD "HKLM\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters" /v MaximumPasswordAge /t REG_DWORD /d 60 /f
+    REM Disable Storing Passwords Using Reversible Encryption
+    REG ADD "HKLM\SYSTEM\CurrentControlSet\Control\Lsa" /v "ClearTextPassword" /t REG_DWORD /d 0 /f
+
+    REM Set account lockout policies
+    net accounts /lockoutthreshold:10 /lockoutduration:30 /lockoutwindow:30
+
+)
+
 Rem Services
 choice /c ync /m "Do you wish to disable any services? (Manual and automatic mode are available) "
 if %ERRORLEVEL% equ 3 (
